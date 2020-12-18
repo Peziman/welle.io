@@ -496,9 +496,38 @@ bool WebRadioInterface::dispatch_client(Socket&& client)
                 const regex regex_slide(R"(^[/]slide[/]([^ ]+))");
                 std::smatch match_slide;
 
+                const regex regex_tune_mp3(R"(^[/]mp3[/]([56789][A-D]|1[123][A-D]|13[EF]|L[A-P])[/]([^ ]+))");
                 const regex regex_mp3(R"(^[/]mp3[/]([^ ]+))");
                 std::smatch match_mp3;
-                if (regex_search(req.url, match_mp3, regex_mp3)) {
+                if (regex_search(req.url, match_mp3, regex_tune_mp3)) {
+                    cerr << "GET channel: " << match_mp3[1] << endl;
+                    try {
+                        const auto freq = input.getFrequency();
+                        const auto chan = channels.getChannelForFrequency(freq);
+                        const auto newchan = match_mp3[1];
+                        if (newchan != chan) {
+                            retune(newchan);
+                            this_thread::sleep_for(chrono::seconds(2));
+                            success = send_mp3(s, match_mp3[2]);
+                            for (auto i=0; i<10 && !success; i++) {
+                                cerr << "Not yet synced, delaying to reply..." << endl;
+                                success = send_mp3(s, match_mp3[2]);
+                                this_thread::sleep_for(chrono::seconds(2));
+                            }
+                            if (success) {
+                                return true;
+                            }
+                        }
+                        else {
+                            cerr << "Retune not required..." << endl;
+                        }
+                    }
+                    catch (const out_of_range& e) {
+                        cerr << "Failed to retune " << e.what() << endl;
+                    }
+                    success = send_mp3(s, match_mp3[2]);
+                }
+                else if (regex_search(req.url, match_mp3, regex_mp3)) {
                     success = send_mp3(s, match_mp3[1]);
                 }
                 else if (regex_search(req.url, match_slide, regex_slide)) {
