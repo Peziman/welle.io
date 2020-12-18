@@ -496,7 +496,7 @@ bool WebRadioInterface::dispatch_client(Socket&& client)
                 const regex regex_slide(R"(^[/]slide[/]([^ ]+))");
                 std::smatch match_slide;
 
-                const regex regex_tune_mp3(R"(^[/]mp3[/]([56789][A-D]|1[123][A-D]|13[EF]|L[A-P])[/]([^ ]+))");
+                const regex regex_tune_mp3(R"(^[/]mp3[/]([56789][A-D]|1[123][A-D]|13[EF]|10[A]|11[D]|L[A-P])[/]([^ ]+))");
                 const regex regex_mp3(R"(^[/]mp3[/]([^ ]+))");
                 std::smatch match_mp3;
                 if (regex_search(req.url, match_mp3, regex_tune_mp3)) {
